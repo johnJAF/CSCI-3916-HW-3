@@ -1,21 +1,54 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.DB);
-    console.log("Connected to MongoDB");
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-    process.exit(1); // Exit the process if the connection fails (optional)
-  }
-};
+const ActorSchema = new Schema({
+    actorName: {
+        type: String,
+        required: [true, 'actor name is required']
+    },
+    characterName: {
+        type: String,
+        required: [true, 'character name is required']
+    }
+}, { _id: false });
 
-connectDB();
-
-// Movie schema
-var MovieSchema = new Schema({
-
+const MovieSchema = new Schema({
+    title: {
+        type: String,
+        required: [true, 'title is required'],
+        index: true
+    },
+    releaseDate: {
+        type: Number,
+        required: [true, 'release date is required'],
+        min: [1900, 'Must be greater than 1899'],
+        max: [2100, 'Must be less than 2100']
+    },
+    genre: {
+        type: String,
+        required: [true, 'genre is required'],
+        enum: [
+            'Action',
+            'Adventure',
+            'Comedy',
+            'Drama',
+            'Fantasy',
+            'Horror',
+            'Mystery',
+            'Thriller',
+            'Western',
+            'Science Fiction'
+        ]
+    },
+    actors: {
+        type: [ActorSchema],
+        validate: {
+            validator: function(value) {
+                return Array.isArray(value) && value.length > 0;
+            },
+            message: 'movie must contain at least one actor'
+        }
+    }
 });
 
 module.exports = mongoose.model('Movie', MovieSchema);

@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express');
 const bodyParser = require('body-parser');
 const passport = require('passport');
@@ -6,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const User = require('./Users');
 const Movie = require('./Movies'); // You're not using Movie, consider removing it
+
 
 const app = express();
 app.use(cors());
@@ -69,10 +71,123 @@ router.post('/signin', async (req, res) => { // Use async/await
 
 router.route('/movies')
     .get(authJwtController.isAuthenticated, async (req, res) => {
-        return res.status(500).json({ success: false, message: 'GET request not supported' });
+        try {
+            const movies = await Movie.find({});
+            return res.status(200).json(movies);
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+                success: false,
+                message: 'failed to retrieve movies'
+            });
+        }
     })
     .post(authJwtController.isAuthenticated, async (req, res) => {
-        return res.status(500).json({ success: false, message: 'POST request not supported' });
+        try {
+            const movie = new Movie({
+                title: req.body.title,
+                releaseDate: req.body.releaseDate,
+                genre: req.body.genre,
+                actors: req.body.actors
+            });
+
+            const savedMovie = await movie.save();
+
+            return res.status(201).json({
+                success: true,
+                movie: savedMovie
+            });
+        } catch (err) {
+            console.error(err);
+            return res.status(400).json({
+                success: false,
+                message: err.message
+            });
+        }
+    });
+
+router.route('/movies/:movieparameter')
+    .get(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const movie = await Movie.findOne({
+                title: req.params.movieparameter
+            });
+
+            if (!movie) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'movie not found'
+                });
+            }
+
+            return res.status(200).json(movie);
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+                success: false,
+                message: 'failed to retrieve movie'
+            });
+        }
+    })
+    .put(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const updatedMovie = await Movie.findOneAndUpdate(
+                { title: req.params.movieparameter },
+                {
+                    title: req.body.title,
+                    releaseDate: req.body.releaseDate,
+                    genre: req.body.genre,
+                    actors: req.body.actors
+                },
+                {
+                    new: true,
+                    runValidators: true
+                }
+            );
+
+            if (!updatedMovie) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'movie not found'
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                movie: updatedMovie
+            });
+        } catch (err) {
+            console.error(err);
+            return res.status(400).json({
+                success: false,
+                message: err.message
+            });
+        }
+    })
+    .delete(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const deletedMovie = await Movie.findOneAndDelete({
+                title: req.params.movieparameter
+            });
+
+            if (!deletedMovie) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'movie not found'
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: 'movie deleted successfully'
+            });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+                success: false,
+                message: 'failed to delete movie'
+            });
+        }
     });
 
 app.use('/', router);
