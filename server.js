@@ -109,7 +109,7 @@ router.route('/movies')
 router.route('/movies/:movieparameter')
     .get(authJwtController.isAuthenticated, async (req, res) => {
         try {
-          const movie = await Movie.findById(req.params.movieparameter);
+          const movie = await Movie.findOne(req.params.movieparameter);
 
             if (!movie) {
                 return res.status(404).json({
