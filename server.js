@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const User = require('./Users');
 const Movie = require('./Movies'); // You're not using Movie, consider removing it
+const mongoose = require('mongoose');
+const Review = require('./Reviews');
 
 
 const app = express();
@@ -107,26 +109,72 @@ router.route('/movies')
     });
 
 router.route('/movies/:movieparameter')
-    .get(authJwtController.isAuthenticated, async (req, res) => {
-        try {
-          const movie = await Movie.findOne(req.params.movieparameter);
+.get(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+        const movieId = req.params.movieparameter;
 
-            if (!movie) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'movie not found'
-                });
-            }
-
-            return res.status(200).json(movie);
-        } catch (err) {
-            console.error(err);
-            return res.status(500).json({
+        if (!mongoose.Types.ObjectId.isValid(movieId)) {
+            return res.status(400).json({
                 success: false,
-                message: 'failed to retrieve movie'
+                message: 'invalid movie id'
             });
         }
-    })
+
+        const result = await Movie.aggregate([
+            {
+                $match: {
+                    _id: new mongoose.Types.ObjectId(movieId)
+                }
+            },
+            {
+                $lookup: {
+                    from: 'reviews',
+                    localField: '_id',
+                    foreignField: 'movieId',
+                    as: 'reviews'
+                }
+            },
+            {
+                $addFields: {
+                    avgRating: {
+                        $cond: [
+                            { $gt: [{ $size: '$reviews' }, 0] },
+                            { $avg: '$reviews.rating' },
+                            0
+                        ]
+                    }
+                }
+            },
+            {
+                $project: {
+                    title: 1,
+                    releaseDate: 1,
+                    genre: 1,
+                    actors: 1,
+                    imageUrl: 1,
+                    reviews: 1,
+                    avgRating: { $round: ['$avgRating', 1] }
+                }
+            }
+        ]);
+
+        if (!result || result.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'movie not found'
+            });
+        }
+
+        return res.status(200).json(result[0]);
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: 'failed to retrieve movie'
+        });
+    }
+})
     .put(authJwtController.isAuthenticated, async (req, res) => {
         try {
             const updatedMovie = await Movie.findOneAndUpdate(
@@ -187,6 +235,82 @@ router.route('/movies/:movieparameter')
             });
         }
     });
+
+    router.post('/reviews', authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const { movieId, reviewerName, rating, review } = req.body;
+    
+            if (!movieId || !reviewerName || rating === undefined || !review) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'movieId, reviewerName, rating, and review are required'
+                });
+            }
+    
+            if (!mongoose.Types.ObjectId.isValid(movieId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'invalid movieId format'
+                });
+            }
+    
+            const movieExists = await Movie.findById(movieId);
+            if (!movieExists) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'movie not found'
+                });
+            }
+    
+            const newReview = new Review({
+                movieId,
+                reviewerName,
+                rating,
+                review
+            });
+    
+            const savedReview = await newReview.save();
+    
+            return res.status(201).json({
+                success: true,
+                review: savedReview
+            });
+    
+        } catch (err) {
+            console.error(err);
+            return res.status(400).json({
+                success: false,
+                message: err.message
+            });
+        }
+    });
+
+    router.get('/reviews/:movieId', authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const { movieId } = req.params;
+    
+            if (!mongoose.Types.ObjectId.isValid(movieId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'invalid movieId format'
+                });
+            }
+    
+            const reviews = await Review.find({ movieId });
+    
+            return res.status(200).json(reviews);
+    
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
+                success: false,
+                message: 'failed to retrieve reviews'
+            });
+        }
+    });
+
+router.route('/reviews/:movieID')
+
 
 app.use('/', router);
 
