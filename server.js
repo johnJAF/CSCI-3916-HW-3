@@ -108,77 +108,85 @@ router.route('/movies')
         }
     });
 
-router.route('/movies/:movieparameter')
-.get(authJwtController.isAuthenticated, async (req, res) => {
-    try {
-        const movieId = req.params.movieparameter;
+    router.route('/movies/:movieparameter')
+    .get(authJwtController.isAuthenticated, async (req, res) => {
+        try {
+            const movieId = req.params.movieparameter;
 
-        if (!mongoose.Types.ObjectId.isValid(movieId)) {
-            return res.status(400).json({
-                success: false,
-                message: 'invalid movie id'
-            });
-        }
+            if (!mongoose.Types.ObjectId.isValid(movieId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'invalid movie id'
+                });
+            }
 
-        const result = await Movie.aggregate([
-            {
-                $match: {
-                    _id: new mongoose.Types.ObjectId(movieId)
-                }
-            },
-            {
-                $lookup: {
-                    from: 'reviews',
-                    localField: '_id',
-                    foreignField: 'movieId',
-                    as: 'reviews'
-                }
-            },
-            {
-                $addFields: {
-                    avgRating: {
-                        $cond: [
-                            { $gt: [{ $size: '$reviews' }, 0] },
-                            { $avg: '$reviews.rating' },
-                            0
-                        ]
+            const result = await Movie.aggregate([
+                {
+                    $match: {
+                        _id: new mongoose.Types.ObjectId(movieId)
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'reviews',
+                        localField: '_id',
+                        foreignField: 'movieId',
+                        as: 'reviews'
+                    }
+                },
+                {
+                    $addFields: {
+                        avgRating: {
+                            $cond: [
+                                { $gt: [{ $size: '$reviews' }, 0] },
+                                { $avg: '$reviews.rating' },
+                                0
+                            ]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        title: 1,
+                        releaseDate: 1,
+                        genre: 1,
+                        actors: 1,
+                        reviews: 1,
+                        avgRating: { $round: ['$avgRating', 1] }
                     }
                 }
-            },
-            {
-                $project: {
-                    title: 1,
-                    releaseDate: 1,
-                    genre: 1,
-                    actors: 1,
-                    imageUrl: 1,
-                    reviews: 1,
-                    avgRating: { $round: ['$avgRating', 1] }
-                }
-            }
-        ]);
+            ]);
 
-        if (!result || result.length === 0) {
-            return res.status(404).json({
+            if (!result || result.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'movie not found'
+                });
+            }
+
+            return res.status(200).json(result[0]);
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({
                 success: false,
-                message: 'movie not found'
+                message: 'failed to retrieve movie'
             });
         }
+    })
 
-        return res.status(200).json(result[0]);
-
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({
-            success: false,
-            message: 'failed to retrieve movie'
-        });
-    }
-})
     .put(authJwtController.isAuthenticated, async (req, res) => {
         try {
-            const updatedMovie = await Movie.findOneAndUpdate(
-                { title: req.params.movieparameter },
+            const movieId = req.params.movieparameter;
+
+            if (!mongoose.Types.ObjectId.isValid(movieId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'invalid movie id'
+                });
+            }
+
+            const updatedMovie = await Movie.findByIdAndUpdate(
+                movieId,
                 {
                     title: req.body.title,
                     releaseDate: req.body.releaseDate,
@@ -210,11 +218,19 @@ router.route('/movies/:movieparameter')
             });
         }
     })
+
     .delete(authJwtController.isAuthenticated, async (req, res) => {
         try {
-            const deletedMovie = await Movie.findOneAndDelete({
-                title: req.params.movieparameter
-            });
+            const movieId = req.params.movieparameter;
+
+            if (!mongoose.Types.ObjectId.isValid(movieId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'invalid movie id'
+                });
+            }
+
+            const deletedMovie = await Movie.findByIdAndDelete(movieId);
 
             if (!deletedMovie) {
                 return res.status(404).json({
@@ -222,6 +238,8 @@ router.route('/movies/:movieparameter')
                     message: 'movie not found'
                 });
             }
+
+            await Review.deleteMany({ movieId: movieId });
 
             return res.status(200).json({
                 success: true,
@@ -275,7 +293,6 @@ router.route('/movies/:movieparameter')
                 success: true,
                 review: savedReview
             });
-    
         } catch (err) {
             console.error(err);
             return res.status(400).json({
