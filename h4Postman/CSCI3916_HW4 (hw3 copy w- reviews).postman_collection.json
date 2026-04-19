@@ -10,24 +10,126 @@
     {
       "name": "signup",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Jonathan Test2\",\n  \"username\": \"jonathan_test@email.com\",\n  \"password\": \"123@abc\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/signup",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "signup"
+          ]
+        }
       },
       "response": []
     },
     {
       "name": "signin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.environment.set(\"token\", jsonData.token);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Jonathan Test2\",\n  \"username\": \"jonathan_test@email.com\",\n  \"password\": \"123@abc\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/signin",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "signin"
+          ]
+        }
       },
       "response": []
     },
     {
       "name": "makeMovies",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Ghostbusters\",\n  \"releaseDate\": 1984,\n  \"genre\": \"Comedy\",\n  \"actors\": [\n    { \"actorName\": \"Bill Murray\", \"characterName\": \"Peter Venkman\" },\n    { \"actorName\": \"Dan Aykroyd\", \"characterName\": \"Ray Stantz\" },\n    { \"actorName\": \"Harold Ramis\", \"characterName\": \"Egon Spengler\" }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/movies",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "movies"
+          ]
+        }
       },
       "response": []
     },
@@ -35,7 +137,25 @@
       "name": "getAllMovies",
       "request": {
         "method": "GET",
-        "header": []
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/movies",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "movies"
+          ]
+        }
       },
       "response": []
     },
@@ -43,63 +163,262 @@
       "name": "getOneMovie",
       "request": {
         "method": "GET",
-        "header": []
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/movies/69b7a3b73fdf3c77ee03389f",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "movies",
+            "69b7a3b73fdf3c77ee03389f"
+          ]
+        }
       },
       "response": []
     },
     {
       "name": "updateAmovie",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"genre\": \"Adventure\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/movies/69b7a3b73fdf3c77ee03389f",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "movies",
+            "69b7a3b73fdf3c77ee03389f"
+          ]
+        }
       },
       "response": []
     },
     {
       "name": "Delete",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/movies/69e56181ee6f3dbe4a33a519",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "movies",
+            "69e56181ee6f3dbe4a33a519"
+          ]
+        }
       },
       "response": []
     },
     {
       "name": "duplicate signup",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Jonathan Test\",\n  \"username\": \"jonathan_test@email.com\",\n  \"password\": \"123@abc\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/signup",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "signup"
+          ]
+        }
       },
       "response": []
     },
     {
       "name": "badMovie",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n \"title\": \"Bad Movie\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/movies",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "movies"
+          ]
+        }
       },
       "response": []
     },
     {
       "name": "makeReview",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\":\"69b7a3b73fdf3c77ee03389f\",\n  \"reviewerName\": \"mee\",\n  \"rating\": 2,\n  \"review\": \"i love to meow\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/reviews",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "reviews"
+          ]
+        }
       },
       "response": []
     },
     {
       "name": "getReviews",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
       "request": {
         "method": "GET",
-        "header": []
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/reviews/69b7a3b73fdf3c77ee03389f",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "reviews",
+            "69b7a3b73fdf3c77ee03389f"
+          ]
+        }
       },
       "response": []
     },
     {
       "name": "invalidReview",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\":\"69b7a3b73fdf3c77ee03389f\",\n  \n  \"rating\": 2,\n  \"review\": \"i love to meow\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://csci-3916-hw-3.onrender.com/reviews",
+          "protocol": "https",
+          "host": [
+            "csci-3916-hw-3",
+            "onrender",
+            "com"
+          ],
+          "path": [
+            "reviews"
+          ]
+        }
       },
       "response": []
     }
